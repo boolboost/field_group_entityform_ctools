@@ -1,0 +1,7 @@
+name = Button Entityform ctools
+description = Button Entityforms with ctools.
+core = 7.x
+package = Custom
+
+dependencies[] = field_group
+dependencies[] = entityform_ctools
