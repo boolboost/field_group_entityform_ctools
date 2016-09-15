@@ -1,0 +1,77 @@
+<?php
+/**
+ * @file
+ * field_group_entityform_ctools.module
+ */
+
+/**
+ * Implements hook_field_group_formatter_info().
+ */
+function field_group_entityform_ctools_field_group_formatter_info() {
+  $group_additions = array(
+    'button_entityform_ctools' => array(
+      'label' => t('Button Entityform ctools'),
+      'format_types' => array('open'),
+      'default_formatter' => 'open',
+      'instance_settings' => array(
+        'entityform_name' => '',
+      ),
+    ),
+  );
+
+  return array(
+    'display' => $group_additions,
+    'form' => $group_additions
+  );
+}
+
+/**
+ * Implements hook_field_group_formatter_settings().
+ */
+function field_group_entityform_ctools_field_group_format_settings($group) {
+  if ($group->format_type == 'button_entityform_ctools') {
+    $entityform_name = isset($group->format_settings['instance_settings']['entityform_name']) ? $group->format_settings['instance_settings']['entityform_name'] : '';
+    $entityform_types_objects = entityform_get_types();
+
+    $options = array();
+    foreach ($entityform_types_objects as $type) {
+      $options[$type->type] = $type->getTranslation('label');
+    }
+
+    $form['instance_settings']['entityform_name'] = array(
+      '#title' => t('Entityform name'),
+      '#type' => 'select',
+      '#default_value' => $entityform_name,
+      '#options' => $options,
+    );
+
+    return $form;
+  }
+}
+
+/**
+ * Implements hook_field_group_build_pre_render_alter().
+ */
+function field_group_entityform_ctools_field_group_build_pre_render_alter(&$element) {
+  foreach ($element['#fieldgroups'] as $group_name => &$group) {
+    if ($group->format_type == 'button_entityform_ctools') {
+      $entityform_name = isset($group->format_settings['instance_settings']['entityform_name']) ? $group->format_settings['instance_settings']['entityform_name'] : '';
+
+      if ($entityform_name) {
+        $entityform = entityform_ctools_add_link($group->label, $entityform_name, 'entityform', array(
+          'attributes' => array(
+            'class' => array(
+              'btn-primary',
+            ),
+          ),
+        ));
+
+        $element[$group_name]['#weight'] = $group->weight;
+        $element[$group_name]['#markup'] = $entityform;
+
+        // Show hidden field group.
+        $element[$group_name]['_markup'] = array('#type' => 'markup', '#markup' => '');
+      }
+    }
+  }
+}
